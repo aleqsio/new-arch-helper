@@ -1,16 +1,19 @@
-#! /usr/bin/env node
+#! /usr/bin/env node --no-warnings
 import spawnAsync from "@expo/spawn-async";
 import * as path from "path";
 import PublicGoogleSheetsParser from "public-google-sheets-parser";
 import chalk from "chalk";
 import { compareVersions } from "compare-versions";
 async function getNewArchSupportedPackages() {
-    const parser = new PublicGoogleSheetsParser("1WzZHK6VF7qQRbNq0kUFSSReHJjf8-kQOzIhZWmEsPBg");
+    const parser = new PublicGoogleSheetsParser("1WzZHK6VF7qQRbNq0kUFSSReHJjf8-kQOzIhZWmEsPBg", { sheetId: "420110515" });
     return Object.fromEntries((await parser.parse()).map((row) => [row.packageName, row]));
 }
-async function getAllPackageDirectories() {
+async function runHelper() {
+    console.log(chalk.bold("New architecture support helper\n"));
     const packages = [];
+    console.log("Fetching data...");
     const supportedPackages = await getNewArchSupportedPackages();
+    console.log("Getting autolinked packages...");
     try {
         let rnAutolinking = JSON.parse((await spawnAsync("npx", ["--yes", "react-native", "config"])).stdout);
         for (const name in rnAutolinking.dependencies) {
@@ -20,7 +23,7 @@ async function getAllPackageDirectories() {
                 const version = (await import(packagePath, {
                     assert: { type: "json" },
                 }))["default"].version;
-                packages.push({ name, version });
+                packages.push({ name, version, source: "rn" });
             }
             catch (error) {
                 console.error("Unable to scan package:", name);
@@ -40,65 +43,52 @@ async function getAllPackageDirectories() {
         for (const name in expoAutolinking) {
             const dependency = expoAutolinking[name];
             const version = dependency.version;
-            packages.push({ name, version });
+            if (!packages.find((pkg) => pkg.name === name)) {
+                packages.push({ name, version, source: "expo" });
+            }
         }
     }
     catch (error) {
         console.error("Unable to run expo-modules-autolinking config", error);
     }
-    console.log(chalk.bold("New architecture support helper"));
-    console.log(chalk.bold("Scanned packages:\n"));
+    // print out the results
+    console.log(chalk.bold("\n\nScanned packages:\n"));
     for (const pkg of packages) {
         if (supportedPackages[pkg.name]) {
             const supportedPackage = supportedPackages[pkg.name];
+            const testedOnString = supportedPackage.testedOnReactNativeVersion
+                ? ` on RN${supportedPackage.testedOnReactNativeVersion}`
+                : "";
             if (supportedPackage.minVersionSupported) {
                 // has support
                 if (compareVersions(pkg.version, supportedPackage.minVersionSupported) >=
                     0) {
-                    console.log(`🟢 ${chalk.bgGreen(pkg.name)}: ${pkg.version} – supported`);
+                    console.log(`🟢 ${chalk.bgGreen(pkg.name)}: ${chalk.bold(pkg.version)} – tested successfully${testedOnString}`);
                 }
                 else {
-                    console.log(`⬆️  ${chalk.bgYellowBright(pkg.name)} – update to ${supportedPackage.minVersionSupported} (currently ${pkg.version})`);
+                    console.log(`⬆️  ${chalk.bgYellowBright(pkg.name)} – update at least to ${supportedPackage.minVersionSupported} (currently ${chalk.bold(pkg.version)})`);
                 }
             }
             else {
                 // no support
-                console.log(`🔴 ${chalk.bgRed(pkg.name)}: ${pkg.version} – not supported (yet)`);
+                console.log(`🔴 ${chalk.bgRed(pkg.name)}: you have v${chalk.bold(pkg.version)} – tested${testedOnString}, may not work`);
                 if (supportedPackage.recommendedAlternative) {
-                    console.log(`     🔧 ${chalk.bgRedBright(supportedPackage.recommendedAlternative)} - recommended alternative`);
+                    console.log(`     🔄 ${chalk.bold(supportedPackage.recommendedAlternative)} - recommended alternative`);
                 }
                 if (supportedPackage.message) {
-                    console.log(`    ${chalk.bgRedBright(supportedPackage.message)}`);
+                    console.log(`     ${chalk.white(supportedPackage.message)}`);
                 }
             }
         }
         else {
-            console.log(`❔ ${chalk.bgGray(pkg.name)} – no information found (currently ${pkg.version})`);
+            if (pkg.source === "expo") {
+                console.log(`🟢 ${chalk.bgGreen(pkg.name)}: ${chalk.bold(pkg.version)} – expo modules are supported by default`);
+            }
+            else {
+                console.log(`❔ ${chalk.bgGray(pkg.name)}: ${chalk.bold(pkg.version)} – not tested`);
+            }
         }
-        console.log("\n");
+        console.log("");
     }
-    // const nodeModulesPath = path.join(packagePath, "node_modules");
-    // const allPackages = await glob("**/*.js", { ignore: "node_modules/**" });
-    // if (packageJsonPath) {
-    //   const packagePath = path.dirname(packageJsonPath);
-    //   try {
-    //     const packageJson = (
-    //       await import(packageJsonPath, {
-    //         assert: { type: "json" },
-    //       })
-    //     )["default"];
-    //     for (const packageName in packageJson.dependencies) {
-    //       const modulePath = path.join(packagePath, "node_modules", packageName);
-    //       console.log(`${packageName}: ${modulePath}`);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error reading package.json:", error);
-    //   }
-    // } else {
-    //   console.error(
-    //     "No package.json file found in the directory or any of its parent directories."
-    //   );
-    // }
 }
-// Example usage
-await getAllPackageDirectories();
+await runHelper();
