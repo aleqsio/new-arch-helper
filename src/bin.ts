@@ -123,9 +123,9 @@ async function runHelper() {
     } else {
       if (pkg.source === "expo") {
         console.log(
-          `🟢 ${chalk.bgGreen(pkg.name)}: ${chalk.bold(
+          `❔ ${chalk.bgGray(pkg.name)}: ${chalk.bold(
             pkg.version
-          )} – expo modules are supported by default`
+          )} – not tested, but most expo modules are supported by default`
         );
       } else {
         console.log(
