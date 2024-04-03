@@ -1,0 +1,25 @@
+{
+  "name": "new-arch",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "bin": "build/bin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@expo/spawn-async": "^1.7.2",
+    "chalk": "^5.3.0",
+    "compare-versions": "^6.1.0",
+    "glob": "^10.3.12",
+    "public-google-sheets-parser": "^1.5.3",
+    "typescript": "^5.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.3"
+  }
+}
