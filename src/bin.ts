@@ -97,7 +97,7 @@ async function runHelper() {
           );
         } else {
           console.log(
-            `⬆️  ${chalk.bgYellowBright(pkg.name)} – update at least to ${
+            `⬆️  ${chalk.bgYellow(pkg.name)} – update at least to ${
               supportedPackage.minVersionSupported
             } (currently ${chalk.bold(pkg.version)})`
           );

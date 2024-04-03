@@ -66,7 +66,7 @@ async function runHelper() {
                     console.log(`🟢 ${chalk.bgGreen(pkg.name)}: ${chalk.bold(pkg.version)} – tested successfully${testedOnString}`);
                 }
                 else {
-                    console.log(`⬆️  ${chalk.bgYellowBright(pkg.name)} – update at least to ${supportedPackage.minVersionSupported} (currently ${chalk.bold(pkg.version)})`);
+                    console.log(`⬆️  ${chalk.bgYellow(pkg.name)} – update at least to ${supportedPackage.minVersionSupported} (currently ${chalk.bold(pkg.version)})`);
                 }
             }
             else {
