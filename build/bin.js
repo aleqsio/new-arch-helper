@@ -54,39 +54,43 @@ async function runHelper() {
     // print out the results
     console.log(chalk.bold("\n\nScanned packages:\n"));
     for (const pkg of packages) {
-        if (supportedPackages[pkg.name]) {
-            const supportedPackage = supportedPackages[pkg.name];
-            const testedOnString = supportedPackage.testedOnReactNativeVersion
-                ? ` on RN${supportedPackage.testedOnReactNativeVersion}`
-                : "";
-            if (supportedPackage.minVersionSupported) {
-                // has support
-                if (compareVersions(pkg.version, supportedPackage.minVersionSupported) >=
-                    0) {
-                    console.log(`🟢 ${chalk.bgGreen(pkg.name)}: ${chalk.bold(pkg.version)} – tested successfully${testedOnString}`);
+        try {
+            if (supportedPackages[pkg.name]) {
+                const supportedPackage = supportedPackages[pkg.name];
+                const testedOnString = supportedPackage.testedOnReactNativeVersion
+                    ? ` on RN${supportedPackage.testedOnReactNativeVersion}`
+                    : "";
+                if (supportedPackage.minVersionSupported) {
+                    // has support
+                    if (compareVersions(pkg.version, supportedPackage.minVersionSupported) >= 0) {
+                        console.log(`🟢 ${chalk.bgGreen(pkg.name)}: ${chalk.bold(pkg.version)} – tested successfully${testedOnString}`);
+                    }
+                    else {
+                        console.log(`⬆️  ${chalk.bgYellow(pkg.name)} – update at least to ${supportedPackage.minVersionSupported} (currently ${chalk.bold(pkg.version)})`);
+                    }
                 }
                 else {
-                    console.log(`⬆️  ${chalk.bgYellow(pkg.name)} – update at least to ${supportedPackage.minVersionSupported} (currently ${chalk.bold(pkg.version)})`);
+                    // no support
+                    console.log(`🔴 ${chalk.bgRed(pkg.name)}: you have v${chalk.bold(pkg.version)} – tested${testedOnString}, may not work`);
+                    if (supportedPackage.recommendedAlternative) {
+                        console.log(`     🔄 ${chalk.bold(supportedPackage.recommendedAlternative)} - recommended alternative`);
+                    }
+                    if (supportedPackage.message) {
+                        console.log(`     ${chalk.white(supportedPackage.message)}`);
+                    }
                 }
             }
             else {
-                // no support
-                console.log(`🔴 ${chalk.bgRed(pkg.name)}: you have v${chalk.bold(pkg.version)} – tested${testedOnString}, may not work`);
-                if (supportedPackage.recommendedAlternative) {
-                    console.log(`     🔄 ${chalk.bold(supportedPackage.recommendedAlternative)} - recommended alternative`);
+                if (pkg.source === "expo") {
+                    console.log(`❔ ${chalk.bgGray(pkg.name)}: ${chalk.bold(pkg.version)} – not tested, but most expo modules are supported by default`);
                 }
-                if (supportedPackage.message) {
-                    console.log(`     ${chalk.white(supportedPackage.message)}`);
+                else {
+                    console.log(`❔ ${chalk.bgGray(pkg.name)}: ${chalk.bold(pkg.version)} – not tested`);
                 }
             }
         }
-        else {
-            if (pkg.source === "expo") {
-                console.log(`❔ ${chalk.bgGray(pkg.name)}: ${chalk.bold(pkg.version)} – not tested, but most expo modules are supported by default`);
-            }
-            else {
-                console.log(`❔ ${chalk.bgGray(pkg.name)}: ${chalk.bold(pkg.version)} – not tested`);
-            }
+        catch (error) {
+            console.log(`🚧 ${chalk.bgMagenta(pkg.name)}: Error while processing package`);
         }
         console.log("");
     }
