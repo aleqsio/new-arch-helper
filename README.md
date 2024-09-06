@@ -1,3 +1,7 @@
+# DEPRECATED, USE EXPO-DOCTOR INSTEAD
+
+https://docs.expo.dev/guides/new-architecture/#validate-your-dependencies-with-react-native-directory
+
 # New Architecture Helper
 
 <img width="1022" alt="image" src="https://github.com/aleqsio/new-arch-helper/assets/5597580/e479f163-527b-45e1-afb4-d28d5ee9a33f">
