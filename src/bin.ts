@@ -1,10 +1,12 @@
-#! /usr/bin/env node --no-warnings
-
 import spawnAsync from "@expo/spawn-async";
 import * as path from "path";
 import PublicGoogleSheetsParser from "public-google-sheets-parser";
 import chalk from "chalk";
 import { compareVersions } from "compare-versions";
+import process from "node:process";
+
+process.on('warning', (warning) => {
+});
 
 type PackageInfo = {
   minVersionSupported: string;
